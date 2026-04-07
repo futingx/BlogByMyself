@@ -8,7 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://your-site.com', // 部署后替换为你的实际域名
+  site: 'https://futingx.github.io/BlogBySelf', // 部署后替换为你的实际域名
+         base: '/BlogBySelf',
+
   integrations: [
     tailwind(),
     sitemap(),
