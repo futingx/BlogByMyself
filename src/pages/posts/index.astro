@@ -1,0 +1,109 @@
+---
+/**
+ * 文章列表页
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PostCard from '@components/post/PostCard.astro';
+import Pagination from '@components/common/Pagination.astro';
+import { getAllPosts } from '@lib/content';
+import { getAllTags, getAllCategories } from '@lib/content';
+
+export const prerender = true;
+
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const POSTS_PER_PAGE = 12;
+
+const posts = await getAllPosts();
+const tags = await getAllTags();
+const categories = await getAllCategories();
+
+const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+const paginatedPosts = posts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
+---
+
+<BaseLayout title="文章" description="所有技术文章与博客内容">
+  <section class="container-custom py-12">
+    <div class="mb-8">
+      <h1 class="mb-2 text-3xl font-bold text-slate-900 dark:text-white">文章</h1>
+      <p class="text-slate-600 dark:text-slate-400">
+        共 {posts.length} 篇文章
+      </p>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-4">
+      <!-- 侧边筛选 -->
+      <aside class="lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <!-- 分类筛选 -->
+          {
+            categories.length > 0 && (
+              <div>
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">
+                  分类
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                  {categories.slice(0, 10).map(({ category, count }) => (
+                    <a
+                      href={`/categories/${category}`}
+                      class="tag"
+                    >
+                      {category} ({count})
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          <!-- 标签云 -->
+          {
+            tags.length > 0 && (
+              <div>
+                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">
+                  标签
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                  {tags.slice(0, 15).map(({ tag, count }) => (
+                    <a
+                      href={`/tags/${tag}`}
+                      class="tag"
+                    >
+                      #{tag} ({count})
+                    </a>
+                  ))}
+                </div>
+                {tags.length > 15 && (
+                  <a href="/tags" class="mt-2 block text-sm text-primary-600 dark:text-primary-400">
+                    查看全部标签 →
+                  </a>
+                )}
+              </div>
+            )
+          }
+        </div>
+      </aside>
+
+      <!-- 文章列表 -->
+      <div class="lg:col-span-3">
+        <div class="grid gap-6 md:grid-cols-2">
+          {paginatedPosts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+
+        {
+          paginatedPosts.length === 0 && (
+            <div class="py-12 text-center">
+              <p class="text-slate-500 dark:text-slate-400">暂无文章</p>
+            </div>
+          )
+        }
+
+        <!-- 分页 -->
+        <div class="mt-12">
+          <Pagination currentPage={page} totalPages={totalPages} baseUrl="/posts" />
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

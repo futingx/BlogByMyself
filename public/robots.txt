@@ -1,0 +1,11 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://your-site.com/sitemap-index.xml
+
+# 禁止爬取
+Disallow: /api/
+Disallow: /_/
+Disallow: /404

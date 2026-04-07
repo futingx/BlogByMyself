@@ -1,0 +1,55 @@
+---
+/**
+ * 项目列表页
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import ProjectCard from '@components/project/ProjectCard.astro';
+import { getAllProjects, getProjectTags } from '@lib/content';
+
+const projects = await getAllProjects();
+const techTags = await getProjectTags();
+---
+
+<BaseLayout title="项目经验" description="个人项目与技术经验沉淀">
+  <section class="container-custom py-12">
+    <div class="mb-8">
+      <h1 class="mb-2 text-3xl font-bold text-slate-900 dark:text-white">项目经验</h1>
+      <p class="text-slate-600 dark:text-slate-400">
+        共 {projects.length} 个项目
+      </p>
+    </div>
+
+    <!-- 技术栈筛选 -->
+    {
+      techTags.length > 0 && (
+        <div class="mb-8">
+          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">
+            技术栈
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            {techTags.slice(0, 12).map(({ tech, count }) => (
+              <span class="tag">
+                {tech} ({count})
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    <!-- 项目列表 -->
+    {
+      projects.length > 0 ? (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <ProjectCard project={project} />
+          ))}
+        </div>
+      ) : (
+        <div class="py-12 text-center">
+          <p class="text-slate-500 dark:text-slate-400">暂无项目</p>
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>

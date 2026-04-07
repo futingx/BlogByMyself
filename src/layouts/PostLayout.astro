@@ -1,0 +1,182 @@
+---
+/**
+ * 文章详情页布局
+ */
+import type { Post } from '@lib/content';
+import BaseLayout from './BaseLayout.astro';
+import PostMeta from '@components/post/PostMeta.astro';
+import TableOfContents from '@components/post/TableOfContents.astro';
+import { siteConfig } from '@data/site';
+
+interface Props {
+  post: Post;
+  headings: { depth: number; slug: string; text: string }[];
+  prevPost?: Post | null;
+  nextPost?: Post | null;
+}
+
+const { post, headings, prevPost, nextPost } = Astro.props;
+const { title, description, cover, seoTitle, seoDescription } = post.data;
+---
+
+<BaseLayout
+  title={seoTitle || title}
+  description={seoDescription || description}
+  image={cover}
+  type="article"
+  publishedTime={post.data.date.toISOString()}
+  article={true}
+>
+  <!-- 文章头部 -->
+  <header class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
+    <div class="container-custom py-12 md:py-16">
+      <!-- 封面图 -->
+      {
+        cover && (
+          <div class="mb-8 overflow-hidden rounded-xl">
+            <img
+              src={cover}
+              alt={title}
+              class="h-64 w-full object-cover md:h-80"
+            />
+          </div>
+        )
+      }
+
+      <div class="mx-auto max-w-3xl">
+        <!-- 元信息 -->
+        <div class="mb-6">
+          <PostMeta post={post} />
+        </div>
+
+        <!-- 标题 -->
+        <h1 class="mb-4 text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl">
+          {title}
+        </h1>
+
+        <!-- 描述 -->
+        <p class="text-lg text-slate-600 dark:text-slate-400">
+          {description}
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- 文章内容 -->
+  <div class="container-custom py-12">
+    <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-4">
+      <!-- 侧边目录（桌面端） -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24">
+          <TableOfContents headings={headings} />
+        </div>
+      </aside>
+
+      <!-- 文章正文 -->
+      <article class="prose prose-slate mx-auto max-w-3xl dark:prose-invert lg:col-span-2">
+        <slot />
+      </article>
+
+      <!-- 右侧空白（桌面端） -->
+      <div class="hidden lg:block lg:col-span-1">
+      </div>
+    </div>
+
+    <!-- 移动端目录 -->
+    <div class="mx-auto max-w-3xl lg:hidden">
+      <details class="rounded-xl border border-slate-200 dark:border-slate-700">
+        <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300">
+          目录
+        </summary>
+        <div class="border-t border-slate-200 px-4 py-3 dark:border-slate-700">
+          <TableOfContents headings={headings} />
+        </div>
+      </details>
+    </div>
+
+    <!-- 上下篇导航 -->
+    {
+      (prevPost || nextPost) && (
+        <nav class="mx-auto mt-16 max-w-3xl">
+          <div class="flex flex-col gap-4 sm:flex-row">
+            {
+              prevPost ? (
+                <a
+                  href={`/posts/${prevPost.slug}`}
+                  class="card flex-1 group"
+                >
+                  <div class="mb-1 text-xs text-slate-500 dark:text-slate-400">← 上一篇</div>
+                  <div class="font-medium text-primary-600 dark:text-primary-400 transition-colors group-hover:text-primary-700 dark:group-hover:text-primary-300">
+                    {prevPost.data.title}
+                  </div>
+                </a>
+              ) : (
+                <div class="flex-1" />
+              )
+            }
+            {
+              nextPost ? (
+                <a
+                  href={`/posts/${nextPost.slug}`}
+                  class="card flex-1 text-right group"
+                >
+                  <div class="mb-1 text-xs text-slate-500 dark:text-slate-400">下一篇 →</div>
+                  <div class="font-medium text-primary-600 dark:text-primary-400 transition-colors group-hover:text-primary-700 dark:group-hover:text-primary-300">
+                    {nextPost.data.title}
+                  </div>
+                </a>
+              ) : (
+                <div class="flex-1" />
+              )
+            }
+          </div>
+        </nav>
+      )
+    }
+
+    <!-- 评论区占位 -->
+    <div class="mx-auto mt-16 max-w-3xl">
+      <div class="rounded-xl border border-slate-200 p-8 text-center dark:border-slate-700">
+        <p class="text-slate-500 dark:text-slate-400">
+          评论区基于 GitHub Discussions 实现
+        </p>
+        <p class="mt-2 text-sm text-slate-400 dark:text-slate-500">
+          请前往文章页面参与讨论
+        </p>
+        <a
+          href={`https://github.com/${siteConfig.socials.github?.split('/').pop()}/discussions`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-primary mt-4"
+        >
+          前往评论区
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // 代码块复制功能
+  document.querySelectorAll('pre').forEach((pre) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative group';
+
+    const button = document.createElement('button');
+    button.className = 'absolute top-2 right-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-slate-300 opacity-0 transition-opacity hover:bg-slate-600 group-hover:opacity-100';
+    button.textContent = '复制';
+
+    pre.parentNode?.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+    wrapper.appendChild(button);
+
+    button.addEventListener('click', async () => {
+      const code = pre.querySelector('code')?.textContent || '';
+      await navigator.clipboard.writeText(code);
+      button.textContent = '已复制!';
+      setTimeout(() => {
+        button.textContent = '复制';
+      }, 2000);
+    });
+  });
+</script>

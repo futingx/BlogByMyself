@@ -1,0 +1,76 @@
+---
+/**
+ * 分类详情页
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PostCard from '@components/post/PostCard.astro';
+import { getAllPosts } from '@lib/content';
+import { getCategoryBySlug, getCategoryName } from '@data/categories';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  const categories = [...new Set(posts.map((post) => post.data.category))];
+
+  return categories.map((category) => ({
+    params: { category },
+    props: {
+      category,
+      posts: posts
+        .filter((post) => post.data.category === category)
+        .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+    },
+  }));
+}
+
+const { category, posts } = Astro.props;
+const categoryInfo = getCategoryBySlug(category);
+const categoryName = getCategoryName(category);
+---
+
+<BaseLayout
+  title={`分类：${categoryName}`}
+  description={categoryInfo?.description || `关于 ${categoryName} 的所有文章`}
+>
+  <section class="container-custom py-12">
+    <div class="mb-8">
+      <a
+        href="/categories"
+        class="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400"
+      >
+        ← 返回分类
+      </a>
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">{categoryInfo?.icon || '📁'}</span>
+        <div>
+          <h1 class="mb-2 text-3xl font-bold text-slate-900 dark:text-white">
+            {categoryName}
+          </h1>
+          {
+            categoryInfo?.description && (
+              <p class="text-slate-600 dark:text-slate-400">
+                {categoryInfo.description}
+              </p>
+            )
+          }
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            共 {posts.length} 篇文章
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {
+      posts.length > 0 ? (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      ) : (
+        <div class="py-12 text-center">
+          <p class="text-slate-500 dark:text-slate-400">暂无文章</p>
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>

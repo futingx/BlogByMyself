@@ -1,0 +1,132 @@
+---
+/**
+ * 搜索页
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PostCard from '@components/post/PostCard.astro';
+import ProjectCard from '@components/project/ProjectCard.astro';
+import ToolCard from '@components/tool/ToolCard.astro';
+import { getAllPosts, getAllProjects, getAllTools } from '@lib/content';
+
+const posts = await getAllPosts();
+const projects = await getAllProjects();
+const tools = await getAllTools();
+
+const allContent = [
+  ...posts.map((p) => ({ type: 'post', ...p })),
+  ...projects.map((p) => ({ type: 'project', ...p })),
+  ...tools.map((t) => ({ type: 'tool', ...t })),
+];
+
+const query = Astro.url.searchParams.get('q')?.toLowerCase() || '';
+const type = Astro.url.searchParams.get('type') || 'all';
+
+const filteredContent = allContent.filter((item) => {
+  const matchType = type === 'all' || item.type === type;
+  if (!query || !matchType) return matchType;
+
+  const searchText = [
+    item.data.title,
+    item.data.description,
+    ...(item.data.tags || []),
+    ...(item.data.techStack || []),
+  ]
+    .join(' ')
+    .toLowerCase();
+
+  return searchText.includes(query);
+});
+---
+
+<BaseLayout title="搜索" description="搜索文章、项目和工具">
+  <section class="container-custom py-12">
+    <div class="mx-auto max-w-3xl">
+      <h1 class="mb-6 text-2xl font-bold text-slate-900 dark:text-white">搜索</h1>
+
+      <!-- 搜索表单 -->
+      <form method="get" class="mb-8">
+        <div class="flex gap-2">
+          <input
+            type="text"
+            name="q"
+            value={query}
+            placeholder="搜索文章、项目、工具..."
+            class="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+          />
+          <button type="submit" class="btn-primary">
+            搜索
+          </button>
+        </div>
+
+        <!-- 类型筛选 -->
+        <div class="mt-4 flex gap-2">
+          {[
+            { value: 'all', label: '全部' },
+            { value: 'post', label: '文章' },
+            { value: 'project', label: '项目' },
+            { value: 'tool', label: '工具' },
+          ].map((t) => (
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="type"
+                value={t.value}
+                checked={type === t.value}
+                class="sr-only peer"
+              />
+              <span class="rounded-full px-3 py-1 text-sm peer-checked:bg-primary-100 peer-checked:text-primary-700 dark:peer-checked:bg-primary-900/30 dark:peer-checked:text-primary-400 cursor-pointer">
+                {t.label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </form>
+
+      <!-- 搜索结果 -->
+      {
+        query ? (
+          <div>
+            <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">
+              {filteredContent.length} 个结果
+            </p>
+
+            {
+              filteredContent.length > 0 ? (
+                <div class="space-y-4">
+                  {filteredContent.map((item) => (
+                    <div>
+                      {item.type === 'post' && (
+                        <PostCard post={item as any} />
+                      )}
+                      {item.type === 'project' && (
+                        <ProjectCard project={item as any} />
+                      )}
+                      {item.type === 'tool' && (
+                        <ToolCard tool={item as any} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div class="py-12 text-center">
+                  <p class="text-slate-500 dark:text-slate-400">
+                    未找到相关结果
+                  </p>
+                  <p class="mt-2 text-sm text-slate-400 dark:text-slate-500">
+                    试试其他关键词
+                  </p>
+                </div>
+              )
+            }
+          </div>
+        ) : (
+          <div class="py-12 text-center">
+            <p class="text-slate-500 dark:text-slate-400">
+              输入关键词开始搜索
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

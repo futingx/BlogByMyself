@@ -1,0 +1,60 @@
+---
+/**
+ * 实用工具页
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolCard from '@components/tool/ToolCard.astro';
+import { getAllTools } from '@lib/content';
+
+const tools = await getAllTools();
+
+// 按类型分组
+const toolsByType = tools.reduce((acc, tool) => {
+  const type = tool.data.type;
+  if (!acc[type]) acc[type] = [];
+  acc[type].push(tool);
+  return acc;
+}, {} as Record<string, typeof tools>);
+
+const typeMap = {
+  'dev-tool': { label: '开发工具', icon: '🔧' },
+  productivity: { label: '效率工具', icon: '⚡' },
+  'ai-tool': { label: 'AI 工具', icon: '🤖' },
+  'browser-extension': { label: '浏览器插件', icon: '🌐' },
+  other: { label: '其他', icon: '📦' },
+};
+---
+
+<BaseLayout title="实用工具" description="日常使用的高效工具与资源推荐">
+  <section class="container-custom py-12">
+    <div class="mb-8">
+      <h1 class="mb-2 text-3xl font-bold text-slate-900 dark:text-white">实用工具</h1>
+      <p class="text-slate-600 dark:text-slate-400">
+        推荐一些我日常使用的高效工具与资源
+      </p>
+    </div>
+
+    {
+      tools.length > 0 ? (
+        Object.entries(toolsByType).map(([type, typeTools]) => (
+          <div class="mb-12">
+            <h2 class="mb-4 flex items-center gap-2 text-xl font-semibold text-slate-900 dark:text-white">
+              <span>{typeMap[type as keyof typeof typeMap]?.icon || '📦'}</span>
+              <span>{typeMap[type as keyof typeof typeMap]?.label || type}</span>
+              <span class="text-sm font-normal text-slate-400">({typeTools.length})</span>
+            </h2>
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {typeTools.map((tool) => (
+                <ToolCard tool={tool} />
+              ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div class="py-12 text-center">
+          <p class="text-slate-500 dark:text-slate-400">暂无工具推荐</p>
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>

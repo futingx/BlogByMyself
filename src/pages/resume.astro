@@ -1,0 +1,176 @@
+---
+/**
+ * 简历页
+ */
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { siteConfig } from '@data/site';
+
+const resumePages = await getCollection('resume');
+const resume = resumePages[0];
+
+let Content;
+if (resume) {
+  const rendered = await render(resume);
+  Content = rendered.Content;
+}
+
+const { name, title, location, email, phone, website, github, linkedin, yearsOfExperience, skills } =
+  resume?.data || {};
+---
+
+<BaseLayout title="个人简历" description="查看我的个人简历与工作经历">
+  <section class="container-custom py-12">
+    <div class="mx-auto max-w-3xl">
+      <!-- 返回链接 -->
+      <a
+        href="/"
+        class="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400"
+      >
+        ← 返回首页
+      </a>
+
+      {
+        resume ? (
+          <div class="card">
+            <!-- 头部信息 -->
+            <header class="mb-8 border-b border-slate-200 pb-8 dark:border-slate-700">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h1 class="text-3xl font-bold text-slate-900 dark:text-white">
+                    {name || siteConfig.author}
+                  </h1>
+                  <p class="mt-1 text-lg text-primary-600 dark:text-primary-400">
+                    {title || '软件工程师'}
+                  </p>
+                </div>
+                <button
+                  onclick="window.print()"
+                  class="btn-secondary hidden print:inline-flex"
+                >
+                  <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                  打印简历
+                </button>
+              </div>
+
+              <!-- 联系信息 -->
+              <div class="mt-4 flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
+                {location && (
+                  <span class="flex items-center gap-1.5">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    {location}
+                  </span>
+                )}
+                {email && (
+                  <a href={`mailto:${email}`} class="hover:text-primary-600 dark:hover:text-primary-400">
+                    {email}
+                  </a>
+                )}
+                {phone && <span>{phone}</span>}
+                {website && (
+                  <a href={website} target="_blank" rel="noopener noreferrer" class="hover:text-primary-600">
+                    {website}
+                  </a>
+                )}
+                {github && (
+                  <a href={github} target="_blank" rel="noopener noreferrer" class="hover:text-primary-600">
+                    GitHub
+                  </a>
+                )}
+                {linkedin && (
+                  <a href={linkedin} target="_blank" rel="noopener noreferrer" class="hover:text-primary-600">
+                    LinkedIn
+                  </a>
+                )}
+              </div>
+
+              <!-- 技能标签 -->
+              {
+                skills && skills.length > 0 && (
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    {skills.map((skill) => (
+                      <span class="rounded bg-slate-100 px-2.5 py-1 text-sm text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )
+              }
+            </header>
+
+            <!-- 简历正文 -->
+            <div class="prose prose-slate dark:prose-invert max-w-none">
+              <Content />
+            </div>
+
+            <!-- 下载按钮（移动端） -->
+            <div class="mt-8 border-t border-slate-200 pt-8 dark:border-slate-700 print:hidden">
+              <button
+                onclick="window.print()"
+                class="btn-primary w-full"
+              >
+                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                  />
+                </svg>
+                打印 / 导出 PDF
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div class="card text-center py-12">
+            <p class="text-slate-500 dark:text-slate-400">
+              简历内容正在整理中...
+            </p>
+            <p class="mt-2 text-sm text-slate-400 dark:text-slate-500">
+              请稍后再来
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  @media print {
+    body {
+      background: white !important;
+    }
+    header, footer, nav, button, a {
+      display: none !important;
+    }
+    .card {
+      border: none !important;
+      background: white !important;
+      padding: 0 !important;
+    }
+    .prose {
+      color: black !important;
+    }
+  }
+</style>
