@@ -1274,35 +1274,172 @@ draft: true
 
 ## 12. 部署上线
 
-### 7.1 部署平台推荐
+### 12.1 部署平台推荐
 
 | 平台 | 推荐指数 | 说明 |
 |------|----------|------|
-| **Vercel** | ⭐⭐⭐⭐⭐ | 最推荐，免费额度够用，GitHub 自动部署 |
+| **GitHub Pages** | ⭐⭐⭐⭐⭐ | 完全免费，与代码一体，推荐优先使用 |
+| **Vercel** | ⭐⭐⭐⭐⭐ | 最推荐，功能强大，自动部署 |
 | **Netlify** | ⭐⭐⭐⭐ | 也很不错，功能类似 |
 | **Cloudflare Pages** | ⭐⭐⭐⭐ | 性能好，免费额度大 |
-| **GitHub Pages** | ⭐⭐⭐ | 可用但功能稍弱 |
 
-下面以 **Vercel** 为例详细说明部署步骤。
+本节提供两种推荐方案：**GitHub Pages（零成本）** 和 **Vercel（一键部署）**，任选其一即可。
 
-### 7.2 Vercel 部署步骤（详细图文）
+---
 
-#### 步骤 1：准备代码
+### 12.2 方式一：GitHub Pages + GitHub Actions 自动部署（推荐）
 
-确保你的代码已经推送到 GitHub 仓库。如果没有：
+这是最推荐的方案，**完全免费**，与你的代码仓库一体，提交代码即自动部署。
+
+#### 步骤 1：创建 GitHub 仓库
+
+1. 打开 https://github.com/new
+2. 填写仓库名称，例如 `my-blog`
+3. 选择 Private（私有）或 Public（公开）
+4. 点击 "Create repository"
+
+#### 步骤 2：创建工作流文件夹
+
+在项目根目录下创建 GitHub Actions 工作流目录：
 
 ```bash
+mkdir -p .github/workflows
+```
+
+#### 步骤 3：创建自动部署工作流
+
+创建文件 `.github/workflows/deploy.yml`：
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  # 当 main 分支有 push 时触发
+  push:
+    branches: [main]
+  # 也可以手动触发
+  workflow_dispatch:
+
+# 设置写入权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 允许并行部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 构建任务
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 设置 Node.js 环境
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. 构建项目
+      - name: Build
+        run: npm run build
+        env:
+          # 如果有自定义域名可以在这里配置
+          # SITE_URL: https://your-domain.com
+
+      # 5. 上传构建产物
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  # 部署任务
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+#### 步骤 4：推送代码到 GitHub
+
+```bash
+# 进入项目目录
+cd your-blog
+
 # 初始化 git（如果还没有）
 git init
 
 # 添加所有文件
 git add .
+git commit -m "feat: 初始化个人博客项目"
+
+# 添加远程仓库（替换为你的仓库地址）
+git remote add origin https://github.com/你的用户名/my-blog.git
+
+# 推送到 main 分支
+git push -u origin main
+```
+
+#### 步骤 5：开启 GitHub Pages
+
+1. 进入你的 GitHub 仓库
+2. 点击 **Settings**（设置）
+3. 左侧菜单找到 **Pages**
+4. **Source**（来源）选择 **GitHub Actions**
+5. 保存
+
+#### 步骤 6：等待部署完成
+
+1. 进入仓库的 **Actions** 页面
+2. 你会看到 "Deploy to GitHub Pages" 工作流正在运行
+3. 等待 1-3 分钟，变为绿色勾选即为成功
+4. 网站地址：`https://你的用户名.github.io/仓库名`
+
+#### 后续更新
+
+以后每次推送代码到 `main` 分支，网站都会**自动更新**：
+
+```bash
+# 修改内容后
+git add .
+git commit -m "feat: 添加新文章"
+git push
+```
+
+几分钟后网站就会自动更新。
+
+---
+
+### 12.3 方式二：Vercel 部署（详细步骤）
+
+如果你更习惯使用 Vercel，也可以按以下步骤部署。
+
+#### 步骤 1：准备代码
+
+确保你的代码已经推送到 GitHub 仓库：
+
+```bash
+git init
+git add .
 git commit -m "initial commit"
-
-# 在 GitHub 创建仓库后，添加远程地址
 git remote add origin https://github.com/yourname/your-blog.git
-
-# 推送代码
 git push -u origin main
 ```
 
@@ -1337,19 +1474,86 @@ git push -u origin main
 3. 按照提示配置 DNS 记录
 4. 等待生效（通常几分钟到 24 小时）
 
-### 7.3 部署后要修改的配置
+#### 自动部署
+
+当你修改代码并推送到 GitHub 后，Vercel 会自动重新部署：
+
+```bash
+git add .
+git commit -m "update content"
+git push
+```
+
+几分钟后，网站就会自动更新。
+
+---
+
+### 12.4 手动部署（备选方案）
+
+如果不使用自动化，也可以手动打包部署。
+
+#### 步骤 1：构建项目
+
+```bash
+npm run build
+```
+
+#### 步骤 2：上传到 GitHub Pages
+
+1. 在 GitHub 仓库创建 `gh-pages` 分支
+2. 将 `dist` 文件夹内容推送到该分支
+
+```bash
+cd dist
+git init
+git add .
+git commit -m "deploy"
+git remote add origin https://github.com/你的用户名/my-blog.git
+git push -f origin HEAD:gh-pages
+```
+
+3. 在仓库 Settings → Pages 中，将 Source 改为 `gh-pages` 分支
+
+#### 步骤 3：等待生效
+
+几分钟后访问 `https://你的用户名.github.io/仓库名`
+
+---
+
+### 12.5 部署后要修改的配置
 
 部署完成后，记得修改以下配置：
 
-1. **`src/data/site.ts` 中的 `url`**：
-   ```typescript
-   url: 'https://your-domain.com',  // 改成你的实际域名
-   ```
+#### 1. 修改 `src/data/site.ts`
 
-2. **`astro.config.mjs` 中的 `site`**：
-   ```javascript
-   site: 'https://your-domain.com',  // 改成你的实际域名
-   ```
+```typescript
+// 如果是 GitHub Pages
+export const siteConfig = {
+  url: 'https://你的用户名.github.io/仓库名',
+  // 如果是自定义域名
+  // url: 'https://你的域名.com',
+};
+
+// 如果是 GitHub Pages，添加 base 配置
+export const siteConfig = {
+  url: 'https://你的用户名.github.io/仓库名',
+  base: '/仓库名',  // 仅 GitHub Pages 需要，Vercel/自定义域名不需要
+};
+```
+
+#### 2. 修改 `astro.config.mjs`
+
+```javascript
+export default defineConfig({
+  // GitHub Pages 部署
+  site: 'https://你的用户名.github.io/仓库名',
+  base: '/仓库名',
+
+  // Vercel 或自定义域名部署
+  // site: 'https://你的域名.com',
+  // base: undefined,
+});
+```
 
 这些配置会影响：
 - SEO 的 canonical URL
@@ -1357,18 +1561,22 @@ git push -u origin main
 - RSS 订阅的 URL
 - Open Graph 的 URL
 
-### 7.4 自动部署
+---
 
-当你修改代码并推送到 GitHub 后，Vercel 会自动重新部署：
+### 12.6 两种自动部署方式对比
 
-```bash
-# 修改代码后
-git add .
-git commit -m "update content"
-git push
-```
+| 对比项 | GitHub Pages + Actions | Vercel |
+|--------|------------------------|--------|
+| 费用 | 完全免费 | 免费额度够用 |
+| 配置难度 | 需要创建 YAML 文件 | 一键导入 |
+| 部署速度 | 约 1-3 分钟 | 约 1-2 分钟 |
+| 自定义域名 | 支持 | 支持 |
+| HTTPS | 自动支持 | 自动支持 |
+| 访问速度 | 较快（CDN） | 很快 |
+| 与代码集成 | 完全一体 | 完全一体 |
+| 私密仓库 | 支持（有限制） | 支持 |
 
-几分钟后，网站就会自动更新。
+**推荐**：如果是个人项目且代码公开，**GitHub Pages + Actions** 是最佳选择。如果需要更多功能或部署多个项目，可以选择 **Vercel**。
 
 ---
 
@@ -1554,7 +1762,7 @@ import Alert from '@components/common/Alert.astro';
 2. **预览效果** → 运行 `npm run dev` 查看效果
 3. **构建测试** → 运行 `npm run build && npm run preview` 确保构建正常
 4. **提交代码** → 使用 Git 提交并推送到远程仓库
-5. **自动部署** → Vercel 会自动部署更新
+5. **自动部署** → GitHub Actions / Vercel 会自动部署更新
 
 ---
 
