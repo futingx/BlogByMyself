@@ -6,6 +6,8 @@
 import { siteConfig } from '@data/site';
 import { generateTitle, generateDescription } from '@lib/seo';
 
+const base = import.meta.env.BASE_URL;
+
 interface Props {
   title?: string;
   description?: string;
@@ -20,7 +22,7 @@ interface Props {
 const {
   title,
   description,
-  image = '/og-image.jpg',
+  image = base + '/og-image.jpg',
   type = 'website',
   publishedTime,
   modifiedTime,
@@ -66,7 +68,7 @@ const ogImage = new URL(image, Astro.site || siteConfig.url).href;
 <meta name="twitter:image" content={ogImage} />
 
 <!-- RSS -->
-<link rel="alternate" type="application/rss+xml" title={siteConfig.name} href="/rss.xml" />
+<link rel="alternate" type="application/rss+xml" title={siteConfig.name} href={base + '/rss.xml'} />
 
 <!-- 主题色 -->
 <meta name="theme-color" content="#2563eb" />

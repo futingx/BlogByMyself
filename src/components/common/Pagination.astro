@@ -10,6 +10,13 @@ interface Props {
 
 const { currentPage, totalPages, baseUrl = '' } = Astro.props;
 
+const base = import.meta.env.BASE_URL;
+
+function withBase(path: string): string {
+  if (path.startsWith('http')) return path;
+  return base + path.replace(/^\//, '');
+}
+
 // 计算要显示的页码
 function getPageNumbers(current: number, total: number): (number | string)[] {
   if (total <= 7) {
@@ -50,7 +57,7 @@ const pageNumbers = getPageNumbers(currentPage, totalPages);
     <nav class="flex items-center justify-center gap-2" aria-label="分页">
       <!-- 上一页 -->
       <a
-        href={currentPage > 1 ? `${baseUrl}${currentPage === 2 ? '' : `/page/${currentPage - 1}`}` : undefined}
+        href={currentPage > 1 ? withBase(`${baseUrl}${currentPage === 2 ? '' : `/page/${currentPage - 1}`}`) : undefined}
         class:list={[
           'flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
           currentPage === 1
@@ -70,7 +77,7 @@ const pageNumbers = getPageNumbers(currentPage, totalPages);
         {pageNumbers.map((page) => (
           typeof page === 'number' ? (
             <a
-              href={page === 1 ? baseUrl : `${baseUrl}/page/${page}`}
+              href={page === 1 ? withBase(baseUrl) : withBase(`${baseUrl}/page/${page}`)}
               class:list={[
                 'min-w-[2.5rem] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 page === currentPage
@@ -89,7 +96,7 @@ const pageNumbers = getPageNumbers(currentPage, totalPages);
 
       <!-- 下一页 -->
       <a
-        href={currentPage < totalPages ? `${baseUrl}/page/${currentPage + 1}` : undefined}
+        href={currentPage < totalPages ? withBase(`${baseUrl}/page/${currentPage + 1}`) : undefined}
         class:list={[
           'flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
           currentPage === totalPages

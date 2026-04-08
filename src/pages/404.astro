@@ -3,6 +3,13 @@
  * 404 页面
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
+
+const base = import.meta.env.BASE_URL;
+
+function withBase(path: string): string {
+  if (path.startsWith('http')) return path;
+  return base + path.replace(/^\//, '');
+}
 ---
 
 <BaseLayout title="页面未找到" description="抱歉，您访问的页面不存在">
@@ -16,17 +23,17 @@ import BaseLayout from '@layouts/BaseLayout.astro';
         抱歉，您访问的页面不存在或已被移除。
       </p>
       <div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <a href="/" class="btn-primary">返回首页</a>
-        <a href="/posts" class="btn-secondary">浏览文章</a>
+        <a href={withBase('/')} class="btn-primary">返回首页</a>
+        <a href={withBase('/posts')} class="btn-secondary">浏览文章</a>
       </div>
 
       <div class="mt-12">
         <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">您可能想找：</p>
         <div class="flex flex-wrap justify-center gap-2">
-          <a href="/posts" class="tag">文章</a>
-          <a href="/projects" class="tag">项目</a>
-          <a href="/tools" class="tag">工具</a>
-          <a href="/about" class="tag">关于</a>
+          <a href={withBase('/posts')} class="tag">文章</a>
+          <a href={withBase('/projects')} class="tag">项目</a>
+          <a href={withBase('/tools')} class="tag">工具</a>
+          <a href={withBase('/about')} class="tag">关于</a>
         </div>
       </div>
     </div>

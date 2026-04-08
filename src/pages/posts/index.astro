@@ -8,6 +8,13 @@ import Pagination from '@components/common/Pagination.astro';
 import { getAllPosts } from '@lib/content';
 import { getAllTags, getAllCategories } from '@lib/content';
 
+const base = import.meta.env.BASE_URL;
+
+function withBase(path: string): string {
+  if (path.startsWith('http')) return path;
+  return base + path.replace(/^\//, '');
+}
+
 export const prerender = true;
 
 const page = Number(Astro.url.searchParams.get('page')) || 1;
@@ -44,7 +51,7 @@ const paginatedPosts = posts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER
                 <div class="flex flex-wrap gap-2">
                   {categories.slice(0, 10).map(({ category, count }) => (
                     <a
-                      href={`/categories/${category}`}
+                      href={withBase(`/categories/${category}`)}
                       class="tag"
                     >
                       {category} ({count})
@@ -65,7 +72,7 @@ const paginatedPosts = posts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER
                 <div class="flex flex-wrap gap-2">
                   {tags.slice(0, 15).map(({ tag, count }) => (
                     <a
-                      href={`/tags/${tag}`}
+                      href={withBase(`/tags/${tag}`)}
                       class="tag"
                     >
                       #{tag} ({count})
@@ -73,7 +80,7 @@ const paginatedPosts = posts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER
                   ))}
                 </div>
                 {tags.length > 15 && (
-                  <a href="/tags" class="mt-2 block text-sm text-primary-600 dark:text-primary-400">
+                  <a href={withBase('/tags')} class="mt-2 block text-sm text-primary-600 dark:text-primary-400">
                     查看全部标签 →
                   </a>
                 )}

@@ -10,6 +10,13 @@ import { getAllPosts, getFeaturedProjects, getFeaturedTools } from '@lib/content
 import { getCategories } from '@data/categories';
 import { siteConfig } from '@data/site';
 
+const base = import.meta.env.BASE_URL;
+
+function withBase(path: string): string {
+  if (path.startsWith('http')) return path;
+  return base + path.replace(/^\//, '');
+}
+
 const posts = await getAllPosts();
 const featuredProjects = await getFeaturedProjects(3);
 const featuredTools = await getFeaturedTools(6);
@@ -31,10 +38,10 @@ const categories = getCategories();
           {siteConfig.bio}
         </p>
         <div class="flex items-center justify-center gap-4">
-          <a href="/posts" class="btn-primary">
+          <a href={withBase('/posts')} class="btn-primary">
             开始阅读
           </a>
-          <a href="/resume" class="btn-secondary">
+          <a href={withBase('/resume')} class="btn-secondary">
             查看简历
           </a>
         </div>
@@ -64,7 +71,7 @@ const categories = getCategories();
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {categories.slice(0, 4).map((cat) => (
           <a
-            href={`/categories/${cat.slug}`}
+            href={withBase(`/categories/${cat.slug}`)}
             class="card group"
           >
             <div class="flex items-center gap-3">
@@ -89,7 +96,7 @@ const categories = getCategories();
     <div class="container-custom">
       <div class="mb-8 flex items-center justify-between">
         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">项目经验</h2>
-        <a href="/projects" class="link text-sm">查看全部 →</a>
+        <a href={withBase('/projects')} class="link text-sm">查看全部 →</a>
       </div>
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {featuredProjects.map((project) => (
@@ -104,7 +111,7 @@ const categories = getCategories();
     <div class="container-custom">
       <div class="mb-8 flex items-center justify-between">
         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">实用工具</h2>
-        <a href="/tools" class="link text-sm">查看全部 →</a>
+        <a href={withBase('/tools')} class="link text-sm">查看全部 →</a>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {featuredTools.map((tool) => (
