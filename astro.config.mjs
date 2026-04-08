@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-import sitemap from '@astrojs/sitemap';
 import { fileURLToPath } from 'url';
 import path from 'node:path';
 
@@ -13,7 +12,7 @@ export default defineConfig({
 
   integrations: [
     tailwind(),
-    sitemap(),
+    // sitemap(),
   ],
   markdown: {
     shikiConfig: {
